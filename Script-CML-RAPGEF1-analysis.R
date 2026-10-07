@@ -355,6 +355,84 @@ if(length(pos_genes) >= 10) {
   }
 }
 
+# --------------------------------------------------------------------------
+    # 7.2 GO TERM NETWORK VISUALIZATION (Enrichment Map)
+    # --------------------------------------------------------------------------
+
+    # Compute pairwise semantic similarity between enriched GO terms
+    go_res_sim <- pairwise_termsim(go_res)
+
+    # -- General network: top 15 most significant terms ------------------------
+    p_emap1 <- emapplot(
+      go_res_sim,
+      showCategory = 15,
+      color        = "p.adjust",
+      layout       = "nicely"
+    ) +
+      labs(
+        title    = "Network of significantly enriched GO Biological Process terms",
+        subtitle = "Nodes represent GO terms; edges indicate semantic similarity based on shared genes."
+      ) +
+      theme(
+        plot.title    = element_text(face = "bold", size = 14, hjust = 0),
+        plot.subtitle = element_text(size = 10, color = "grey30", hjust = 0)
+      )
+
+    print(p_emap1)
+
+    ggsave(
+      filename = file.path(net_path, "GO_Network_General.svg"),
+      plot     = p_emap1,
+      width    = 16, height = 14,
+      device   = "svg"
+    )
+
+    # -- Focused network: hematopoietic differentiation cluster ----------------
+    # Select GO terms related to myeloid differentiation and coagulation
+    terminos_cluster <- grep(
+      "myeloid|granulocyte|megakaryocyte|coagulation|hemostasis|platelet|differentiation",
+      go_res$Description,
+      ignore.case = TRUE,
+      value       = TRUE
+    )
+
+    message(sprintf("\nTerms included in hematopoietic cluster: %d",
+                    length(terminos_cluster)))
+    message(paste(" -", terminos_cluster, collapse = "\n"))
+
+    p_emap2 <- emapplot(
+      go_res_sim,
+      showCategory = terminos_cluster,
+      color        = "p.adjust",
+      layout       = "nicely"
+    ) +
+      labs(
+        title    = "Network: Myeloid & Granulocyte Differentiation Cluster",
+        subtitle = "Focused view on cell differentiation and blood coagulation terms"
+      ) +
+      theme(
+        plot.title    = element_text(face = "bold", size = 12, hjust = 0),
+        plot.subtitle = element_text(size = 9, color = "grey30", hjust = 0)
+      )
+
+    print(p_emap2)
+
+    ggsave(
+      filename = file.path(net_path, "GO_Network_Hematopoietic_Cluster.svg"),
+      plot     = p_emap2,
+      width    = 14, height = 12,
+      device   = "svg"
+    )
+
+    message("\nNetwork figures saved to: ", net_path)
+
+  } else {
+    message("No significant GO terms found.")
+  }
+} else {
+  message("Insufficient positively correlated genes for GO enrichment.")
+}
+
 # ==============================================================================
 # 8. SUB-PATHWAY GENE EXTRACTION
 # ==============================================================================
